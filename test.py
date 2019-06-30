@@ -56,6 +56,7 @@ n=np.size(t)
 
 ans=func.NARMA(t,n)
 ans=torch.from_numpy(ans).float()
+
 ans=ans.reshape(400,1,1)
 t=torch.from_numpy(t).float()
 t=t.reshape(400,1,1)
@@ -67,4 +68,9 @@ net.eval()
 test_out=net(t)
 loss = loss_func(test_out,ans)
 print(loss)
-
+xlabel=np.arange(n)
+test_out=test_out.reshape(n).detach().numpy().tolist()
+plt.plot(xlabel,test_out)
+ans=ans.reshape(n).detach().numpy().tolist()
+plt.plot(xlabel,ans)
+plt.show()

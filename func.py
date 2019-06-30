@@ -33,3 +33,22 @@ def NARMA(t,m):
 			y[i]=0
 		y[i]=(1-d1)*y[i-1]+(1-d3)*y[i-1]*u[i-1]/u[i-2]+(d3-1)*(1+d1)*y[i-2]*u[i-1]/u[i-2]+d0*d2*u[i-1]*I[i-2]-d0*u[i-2]*y[i-1]+d0*(1+d1)*u[i-1]*y[i-2]
 	return y
+def NARMA_withnoise(t,m):
+	u=np.zeros(m)
+	y=np.zeros(m)	
+	y[0]=y0
+	y[1]=y1
+	I=fun_I(t)
+	for i in range (m):
+		u[i]=fun_U(t[i])
+	#设计噪声
+	noise0=0.05*np.random.randn(m)*I.std()
+	noise1=0.05*np.random.randn(m)*u.std()
+	I=I+noise0
+	u=u+noise1
+	for i in range (m):
+		if t[i]<=0:
+			y[i]=0
+		y[i]=(1-d1)*y[i-1]+(1-d3)*y[i-1]*u[i-1]/u[i-2]+(d3-1)*(1+d1)*y[i-2]*u[i-1]/u[i-2]+d0*d2*u[i-1]*I[i-2]-d0*u[i-2]*y[i-1]+d0*(1+d1)*u[i-1]*y[i-2]
+	return y
+

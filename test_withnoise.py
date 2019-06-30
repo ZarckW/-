@@ -5,15 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import func 
-import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-data_size=20000
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-n=data_size
-xlabel=np.arange(n)
-
-
+sample_size=500
 #定义网络
 class Net(torch.nn.Module):
     def __init__(self):
@@ -24,17 +16,17 @@ class Net(torch.nn.Module):
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2))
         self.layer2 = nn.Sequential(
-            nn.Conv1d(16, 64, kernel_size=2),
-            nn.BatchNorm1d(64),
+            nn.Conv1d(16, 32, kernel_size=2),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2))
         self.layer3 = nn.Sequential(
-            nn.Conv1d(64, 200, kernel_size=2),
-            nn.BatchNorm1d(200),
+            nn.Conv1d(32, 64, kernel_size=2),
+            nn.BatchNorm1d(64),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2))
         self.layer4 = nn.Sequential(
-            nn.Conv1d(200, 1, kernel_size=2),
+            nn.Conv1d(64, 1, kernel_size=2),
             nn.BatchNorm1d(1),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2))
@@ -44,7 +36,6 @@ class Net(torch.nn.Module):
         self.fc3= nn.Linear(11,1)
     def forward(self, x):
         out = self.fc0(x)
-
         out = self.layer1(out)
         out = self.layer2(out)
         #out = self.fc1(out)
@@ -54,43 +45,35 @@ class Net(torch.nn.Module):
         #out = self.fc2(out)
         out = self.fc3(out)
         return out
-#生成训练数据集
-t=np.random.rand(data_size)*1400
-t=np.sort(t)
-m=np.size(t)
-ans=func.NARMA(t,m)
-plt.plot(xlabel,ans)
-ans=torch.from_numpy(ans).float()
-ans=ans.reshape(data_size,1,1)
-t=torch.from_numpy(t).float()
-t=t.reshape(data_size,1,1)
-t=t.to(device)
-ans=ans.to(device)
-#网络训练
-
-net = Net() 
-net=net.to(device)
-print(net)
-optimizer = torch.optim.SGD(net.parameters(), lr=0.002)
+#载入网络
+net=Net()
+net.load_state_dict(torch.load('Mynet.pkl'))
+optimizer = torch.optim.SGD(net.parameters(), lr=0.02)
 loss_func = torch.nn.MSELoss() 
-Num=100#迭代次数
-net.train()
-for i in range(Num):
-    net.train()
-    out = net(t)               # input x and predict based on x
-    loss = loss_func(out,ans)     # must be (1. nn output, 2. target), the target label is NOT one-hotted
-    optimizer.zero_grad()   # clear gradients for next train
-    loss.backward()         # backpropagation, compute gradients
-    optimizer.step()        # apply gradients
-    prediction = torch.max(out, 1)[1]
-    print(loss)
-torch.save(net.state_dict(),'Mynet.pkl')
-#画图
+#生成测试数据集
+t=np.random.rand(sample_size)*1400
+t=np.sort(t)
+n=np.size(t)
 
-out=out.cpu()
-test_out=out.reshape(n).detach().numpy().tolist()
+ans=func.NARMA_withnoise(t,n)
+ans=torch.from_numpy(ans).float()
+
+ans=ans.reshape(sample_size,1,1)
+t=torch.from_numpy(t).float()
+t=t.reshape(sample_size,1,1)
+
+#dataset=[torch.from_numpy(t).float(),torch.from_numpy(ans).float()]
+
+#测试网络
+net.eval()
+test_out=net(t)
+loss = loss_func(test_out,ans)
+print(loss)
+xlabel=np.arange(n)
+test_out=test_out.reshape(n).detach().numpy().tolist()
 plt.plot(xlabel,test_out)
-
-
+ans=ans.reshape(n).detach().numpy().tolist()
+plt.plot(xlabel,ans)
 plt.show()
+
 
