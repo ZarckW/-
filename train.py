@@ -8,10 +8,10 @@ import func
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-data_size=20000
+data_size=2000
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 n=data_size
-xlabel=np.arange(n)
+
 
 
 #定义网络
@@ -19,40 +19,34 @@ class Net(torch.nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.layer1 = nn.Sequential(
-            nn.Conv1d(1,16,kernel_size=2),
-            nn.BatchNorm1d(16),
+            nn.Conv1d(1,4,kernel_size=2),
+            nn.BatchNorm1d(4),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2))
         self.layer2 = nn.Sequential(
-            nn.Conv1d(16, 64, kernel_size=2),
-            nn.BatchNorm1d(64),
+            nn.Conv1d(4, 16, kernel_size=2),
+            nn.BatchNorm1d(16),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2))
         self.layer3 = nn.Sequential(
-            nn.Conv1d(64, 200, kernel_size=2),
-            nn.BatchNorm1d(200),
+            nn.Conv1d(16, 16, kernel_size=2),
+            nn.BatchNorm1d(16),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2))
         self.layer4 = nn.Sequential(
-            nn.Conv1d(200, 1, kernel_size=2),
+            nn.Conv1d(16, 1, kernel_size=2),
             nn.BatchNorm1d(1),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2))
-        self.fc0= nn.Linear(1,200)
-        self.fc1= nn.Linear(499,3000)
-        self.fc2= nn.Linear(749, 2000)
-        self.fc3= nn.Linear(11,1)
+        self.fc0= nn.Linear(1,500)
+        self.fc1= nn.Linear(30,1)
     def forward(self, x):
         out = self.fc0(x)
-
         out = self.layer1(out)
         out = self.layer2(out)
-        #out = self.fc1(out)
         out = self.layer3(out)
         out = self.layer4(out)
-        #out = out.reshape(out.size(1), -1)
-        #out = self.fc2(out)
-        out = self.fc3(out)
+        out = self.fc1(out)
         return out
 #生成训练数据集
 t=np.random.rand(data_size)*1400
@@ -73,7 +67,7 @@ net=net.to(device)
 print(net)
 optimizer = torch.optim.SGD(net.parameters(), lr=0.002)
 loss_func = torch.nn.MSELoss() 
-Num=100#迭代次数
+Num=2000#迭代次数
 net.train()
 for i in range(Num):
     net.train()
@@ -86,7 +80,7 @@ for i in range(Num):
     print(loss)
 torch.save(net.state_dict(),'Mynet.pkl')
 #画图
-
+xlabel=t.reshape(data_size).tolist()
 out=out.cpu()
 test_out=out.reshape(n).detach().numpy().tolist()
 plt.plot(xlabel,test_out)
