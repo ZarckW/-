@@ -7,4 +7,4 @@ test_withnoise是带噪声的数据测试CNN<br>
 ESN.py是用回声状态网络解答<br>
 函数在func.py中<br>
 训练好的网络数据保存在Mynet.pkl中<br>
-使用https://github.com/stefanonardo/pytorch-esn中的ESN网络模型
+使用https://github.com/stefanonardo/pytorch-esn     中的ESN网络模型
